@@ -252,6 +252,9 @@
 (use-package htmlize)
 (setq org-html-postamble nil)
 
+(customize-set-value 'org-latex-with-hyperref nil)
+
+
 ;(require 'ox-latex)
 ;(unless (boundp 'org-latex-classes)
 ;  (setq org-latex-classes nil))
@@ -301,3 +304,7 @@
 
 (global-set-key (kbd "C-x 2") 'hrs/split-window-below-and-switch)
 (global-set-key (kbd "C-x 3") 'hrs/split-window-right-and-switch)
+
+(use-package smartparens)
+(require 'smartparens-config)
+(smartparens-global-mode t)

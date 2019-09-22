@@ -162,7 +162,7 @@ just a hint of transparency looks lovely and isn't distracting or hard to read.
       (set-face-attribute 'mode-line-inactive nil :box        nil)
       (set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")))
 
- 
+
 
   (defun hrs/apply-theme ()
     "Apply the `solarized-dark' theme and make frames just slightly transparent."
@@ -571,6 +571,9 @@ enable latex
 
 #+BEGIN_SRC emacs-lisp
 
+(customize-set-value 'org-latex-with-hyperref nil)
+
+
 ;(require 'ox-latex)
 ;(unless (boundp 'org-latex-classes)
 ;  (setq org-latex-classes nil))
@@ -701,4 +704,14 @@ makes that automatic.
 #+END_SRC
 
 
+** Auto closing parens
 
+Install and enable =smart-parens= globally
+
+#+BEGIN_SRC emacs-lisp
+
+(use-package smartparens)
+(require 'smartparens-config)
+(smartparens-global-mode t)
+
+#+END_SRC
