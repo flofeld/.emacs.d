@@ -1,0 +1,782 @@
+% Created 2019-09-22 So 15:27
+% Intended LaTeX compiler: pdflatex
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{minted}
+\author{Florian Feldmann}
+\date{\today}
+\title{Emacs Configuration}
+\hypersetup{
+ pdfauthor={Florian Feldmann},
+ pdftitle={Emacs Configuration},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 26.3 (Org mode 9.1.9)},
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\section{Configure \texttt{use-package}}
+\label{sec:org453caf6}
+
+I use \texttt{use-package} to install and configure my packages. My \texttt{init.el} includes
+the initial setup for \texttt{package.el} and ensures that \texttt{use-package} is installed,
+since I wanna do that right away.
+
+This makes sure that \texttt{use-package} will install the package if it's not already
+available. It also means that I should be able to open Emacs for the first time
+on a fresh Debian box and have my whole environment automatically installed. I'm
+not \emph{totally} sure about that, but we're gettin' close.
+
+\begin{minted}[]{common-lisp}
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+\end{minted}
+
+Always compile packages, and use the newest version available.
+
+\begin{minted}[]{common-lisp}
+(use-package auto-compile
+  :config (auto-compile-on-load-mode))
+
+(setq load-prefer-newer t)
+\end{minted}
+
+\section{Use sensible-defaults.el}
+\label{sec:org29b7836}
+
+Use \href{https://github.com/hrs/sensible-defaults.el}{sensible-defaults.el} for some basic settings.
+
+\begin{minted}[]{common-lisp}
+(load-file "~/.emacs.d/sensible-defaults.el/sensible-defaults.el")
+(sensible-defaults/use-all-settings)
+\end{minted}
+
+\section{Set personal information}
+\label{sec:orgfa0f412}
+
+\begin{enumerate}
+\item Who am I?
+\label{sec:org10f41af}
+
+\begin{minted}[]{common-lisp}
+(setq user-full-name "Florian Feldmann"
+	  user-mail-address "kontakt@flofeld.tech"
+)
+\end{minted}
+\end{enumerate}
+
+\section{Add \texttt{resources} to \texttt{load-path}}
+\label{sec:orgb86ca34}
+
+\begin{minted}[]{common-lisp}
+(add-to-list 'load-path "~/.emacs.d/resources/")
+\end{minted}
+
+
+\section{Utility functions}
+\label{sec:orgaed19cd}
+
+Define a big ol' bunch of handy utility functions.
+
+\begin{minted}[]{common-lisp}
+(defun hrs/rename-file (new-name)
+  (interactive "FNew name: ")
+  (let ((filename (buffer-file-name)))
+	(if filename
+		(progn
+		  (when (buffer-modified-p)
+			 (save-buffer))
+		  (rename-file filename new-name t)
+		  (kill-buffer (current-buffer))
+		  (find-file new-name)
+		  (message "Renamed '%s' -> '%s'" filename new-name))
+	  (message "Buffer '%s' isn't backed by a file!" (buffer-name)))))
+
+(defun hrs/generate-scratch-buffer ()
+  "Create and switch to a temporary scratch buffer with a random
+	 name."
+  (interactive)
+  (switch-to-buffer (make-temp-name "scratch-")))
+
+(defun hrs/kill-current-buffer ()
+  "Kill the current buffer without prompting."
+  (interactive)
+  (kill-buffer (current-buffer)))
+
+(defun hrs/visit-last-migration ()
+  "Open the most recent Rails migration. Relies on projectile."
+  (interactive)
+  (let ((migrations
+		 (directory-files
+		  (expand-file-name "db/migrate" (projectile-project-root)) t)))
+	(find-file (car (last migrations)))))
+
+(defun hrs/add-auto-mode (mode &rest patterns)
+  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
+  (dolist (pattern patterns)
+	(add-to-list 'auto-mode-alist (cons pattern mode))))
+
+(defun hrs/find-file-as-sudo ()
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+	(when file-name
+	  (find-alternate-file (concat "/sudo::" file-name)))))
+
+(defun hrs/region-or-word ()
+  (if mark-active
+	  (buffer-substring-no-properties (region-beginning)
+									  (region-end))
+	(thing-at-point 'word)))
+
+(defun hrs/append-to-path (path)
+  "Add a path both to the $PATH variable and to Emacs' exec-path."
+  (setenv "PATH" (concat (getenv "PATH") ":" path))
+  (add-to-list 'exec-path path))
+\end{minted}
+
+\section{UI preferences}
+\label{sec:orgae8d529}
+\begin{enumerate}
+\item Tweak window chrome
+\label{sec:orgf8b1ac3}
+
+There's a tiny scroll bar that appears in the minibuffer window. This disables
+that:
+
+\begin{minted}[]{common-lisp}
+(set-window-scroll-bars (minibuffer-window) nil nil)
+\end{minted}
+
+The default frame title isn't useful. This binds it to the name of the current
+project:
+
+\begin{minted}[]{common-lisp}
+(setq frame-title-format '((:eval (projectile-project-name))))
+\end{minted}
+
+\item Use fancy lambdas
+\label{sec:orga78c289}
+
+Why not?
+
+\begin{minted}[]{common-lisp}
+(global-prettify-symbols-mode t)
+\end{minted}
+
+\item Load up a theme
+\label{sec:orga727097}
+
+I'm currently using the ``solarized-dark'' theme. I've got a scenic wallpaper, so
+just a hint of transparency looks lovely and isn't distracting or hard to read.
+
+\begin{minted}[]{common-lisp}
+(use-package solarized-theme
+  :config
+  (load-theme 'solarized-dark t)
+
+  (setq solarized-use-variable-pitch nil
+		solarized-height-plus-1 1.0
+		solarized-height-plus-2 1.0
+		solarized-height-plus-3 1.0
+		solarized-height-plus-4 1.0)
+
+  (let ((line (face-attribute 'mode-line :underline)))
+	(set-face-attribute 'mode-line          nil :overline   line)
+	(set-face-attribute 'mode-line-inactive nil :overline   line)
+	(set-face-attribute 'mode-line-inactive nil :underline  line)
+	(set-face-attribute 'mode-line          nil :box        nil)
+	(set-face-attribute 'mode-line-inactive nil :box        nil)
+	(set-face-attribute 'mode-line-inactive nil :background "#f9f2d9")))
+
+
+
+(defun hrs/apply-theme ()
+  "Apply the `solarized-dark' theme and make frames just slightly transparent."
+  (interactive)
+  (load-theme 'solarized-dark t))
+\end{minted}
+
+If this code is being evaluated by \texttt{emacs -{}-daemon}, ensure that each subsequent
+frame is themed appropriately.
+
+\begin{minted}[]{common-lisp}
+(if (daemonp)
+	(add-hook 'after-make-frame-functions
+			  (lambda (frame)
+				(with-selected-frame frame (hrs/apply-theme))))
+  (hrs/apply-theme))
+\end{minted}
+
+\item Use \texttt{moody} for a beautiful modeline
+\label{sec:org10b6cd6}
+
+This gives me a truly lovely ribbon-based modeline.
+
+\begin{minted}[]{common-lisp}
+(use-package moody
+  :config
+  (setq x-underline-at-descent-line t)
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode))
+\end{minted}
+
+
+\item Disable visual bell
+\label{sec:org2150f22}
+
+\texttt{sensible-defaults} replaces the audible bell with a visual one, but I really
+don't even want that (and my Emacs/Mac pair renders it poorly). This disables
+the bell altogether.
+
+\begin{minted}[]{common-lisp}
+(setq ring-bell-function 'ignore)
+\end{minted}
+
+\item Scroll conservatively
+\label{sec:org1fa0b14}
+
+When point goes outside the window, Emacs usually recenters the buffer point.
+I'm not crazy about that. This changes scrolling behavior to only scroll as far
+as point goes.
+
+\begin{minted}[]{common-lisp}
+(setq scroll-conservatively 100)
+\end{minted}
+
+
+
+\item Highlight the current line
+\label{sec:org9b29de6}
+
+\texttt{global-hl-line-mode} softly highlights the background color of the line
+containing point. It makes it a bit easier to find point, and it's useful when
+pairing or presenting code.
+
+\begin{minted}[]{common-lisp}
+(global-hl-line-mode)
+\end{minted}
+
+\item Highlight uncommitted changes
+\label{sec:orgde0783d}
+
+Use the \texttt{diff-hl} package to highlight changed-and-uncommitted lines when
+programming.
+
+\begin{minted}[]{common-lisp}
+(use-package diff-hl
+  :config
+  (add-hook 'prog-mode-hook 'turn-on-diff-hl-mode)
+  (add-hook 'vc-dir-mode-hook 'turn-on-diff-hl-mode))
+\end{minted}
+\end{enumerate}
+
+\section{Project management}
+\label{sec:org9030bd6}
+
+I use a few packages in virtually every programming or writing environment to
+manage the project, handle auto-completion, search for terms, and deal with
+version control. That's all in here.
+
+\begin{enumerate}
+\item \texttt{ag}
+\label{sec:org48d20e2}
+
+Set up \texttt{ag} for displaying search results.
+
+\begin{minted}[]{common-lisp}
+(use-package ag)
+\end{minted}
+
+\item \texttt{company}
+\label{sec:org546959c}
+
+Use \texttt{company-mode} everywhere.
+
+\begin{minted}[]{common-lisp}
+(use-package company)
+(add-hook 'after-init-hook 'global-company-mode)
+\end{minted}
+
+Use \texttt{M-/} for completion.
+
+\begin{minted}[]{common-lisp}
+(global-set-key (kbd "M-/") 'company-complete-common)
+\end{minted}
+
+
+\item \texttt{flycheck}
+\label{sec:orgb07a4a5}
+
+\begin{minted}[]{common-lisp}
+(use-package flycheck)
+\end{minted}
+\end{enumerate}
+
+
+
+
+\section{Programming environments}
+\label{sec:orge415aef}
+
+I like shallow indentation, but tabs are displayed as 8 characters by default.
+This reduces that.
+
+\begin{minted}[]{common-lisp}
+(setq-default tab-width 4)
+\end{minted}
+
+Treating terms in CamelCase symbols as separate words makes editing a little
+easier for me, so I like to use \texttt{subword-mode} everywhere.
+
+\begin{minted}[]{common-lisp}
+(use-package subword
+  :config (global-subword-mode 1))
+\end{minted}
+
+Compilation output goes to the \texttt{*compilation*} buffer. I rarely have that window
+selected, so the compilation output disappears past the bottom of the window.
+This automatically scrolls the compilation window so I can always see the
+output.
+
+\begin{minted}[]{common-lisp}
+(setq compilation-scroll-output t)
+\end{minted}
+
+
+\begin{enumerate}
+\item CSS, Sass, and Less
+\label{sec:org0d87fd8}
+
+Indent by 2 spaces.
+
+\begin{minted}[]{common-lisp}
+(use-package css-mode
+  :config
+  (setq css-indent-offset 2))
+\end{minted}
+
+Don't compile the current SCSS file every time I save.
+
+\begin{minted}[]{common-lisp}
+(use-package scss-mode
+  :config
+  (setq scss-compile-at-save nil))
+\end{minted}
+
+Install Less.
+
+\begin{minted}[]{common-lisp}
+(use-package less-css-mode)
+\end{minted}
+
+\item Golang
+\label{sec:org0ba394e}
+
+Install \texttt{go-mode} and related packages:
+
+\begin{minted}[]{common-lisp}
+(use-package go-mode)
+(use-package go-errcheck)
+(use-package company-go)
+\end{minted}
+
+Define my \texttt{\$GOPATH} and tell Emacs where to find the Go binaries.
+
+\begin{minted}[]{common-lisp}
+(setenv "GOPATH" "/home/flofeld/go")
+(hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
+\end{minted}
+
+Run \texttt{goimports} on every file when saving, which formats the file and
+automatically updates the list of imports. This requires that the \texttt{goimports}
+binary be installed.
+
+\begin{minted}[]{common-lisp}
+(setq gofmt-command "goimports")
+(add-hook 'before-save-hook 'gofmt-before-save)
+\end{minted}
+
+When I open a Go file,
+
+\begin{itemize}
+\item Start up \texttt{company-mode} with the Go backend. This requires that the \texttt{gocode}
+binary is installed,
+\item Redefine the default \texttt{compile} command to something Go-specific, and
+\item Enable \texttt{flycheck}.
+\end{itemize}
+
+\begin{minted}[]{common-lisp}
+(add-hook 'go-mode-hook
+		  (lambda ()
+			(set (make-local-variable 'company-backends)
+				 '(company-go))
+			(company-mode)
+			(if (not (string-match "go" compile-command))
+				(set (make-local-variable 'compile-command)
+					 "go build -v && go test -v && go vet"))
+			(flycheck-mode)))
+\end{minted}
+
+Config for company-go
+
+\begin{minted}[]{common-lisp}
+(when (memq window-system '(mac ns x))
+  (exec-path-from-shell-initialize))
+
+;;For company-go
+(require 'company)
+(require 'company-go)
+
+(use-package company
+  :defer 2
+  :diminish
+  :custom
+  (company-begin-commands '(self-insert-command))
+  (company-idle-delay .1)
+  (company-minimum-prefix-length 2)
+  (company-show-numbers t)
+  (company-tooltip-align-annotations 't)
+  (company-tooltip-limit 20)
+  (company-begin-commands '(self-insert-command))
+  (global-company-mode t))
+
+(add-hook 'go-mode-hook
+	  (lambda ()
+		(set (make-local-variable 'company-backends) '(company-go))
+		(company-mode)))
+
+\end{minted}
+
+
+
+\item JavaScript and CoffeeScript
+\label{sec:orgba8174f}
+
+Install \texttt{coffee-mode} from editing CoffeeScript code.
+
+\begin{minted}[]{common-lisp}
+(use-package coffee-mode)
+\end{minted}
+
+Indent everything by 2 spaces.
+
+\begin{minted}[]{common-lisp}
+(setq js-indent-level 2)
+
+(add-hook 'coffee-mode-hook
+		  (lambda ()
+			(yas-minor-mode 1)
+			(setq coffee-tab-width 2)))
+\end{minted}
+
+\item Lisps
+\label{sec:org19dc91a}
+
+I like to use \texttt{paredit} in Lisp modes to balance parentheses (and more!).
+
+\begin{minted}[]{common-lisp}
+(use-package paredit)
+\end{minted}
+
+\texttt{rainbow-delimiters} is convenient for coloring matching parentheses.
+
+\begin{minted}[]{common-lisp}
+(use-package rainbow-delimiters)
+\end{minted}
+
+All the lisps have some shared features, so we want to do the same things for
+all of them. That includes using \texttt{paredit}, \texttt{rainbow-delimiters}, and
+highlighting the whole expression when point is on a parenthesis.
+
+\begin{minted}[]{common-lisp}
+(setq lispy-mode-hooks
+	  '(clojure-mode-hook
+		emacs-lisp-mode-hook
+		lisp-mode-hook
+		scheme-mode-hook))
+
+(dolist (hook lispy-mode-hooks)
+  (add-hook hook (lambda ()
+				   (setq show-paren-style 'expression)
+				   (paredit-mode)
+				   (rainbow-delimiters-mode))))
+\end{minted}
+
+If I'm writing in Emacs lisp I'd like to use \texttt{eldoc-mode} to display
+documentation.
+
+\begin{minted}[]{common-lisp}
+(use-package eldoc
+  :config
+  (add-hook 'emacs-lisp-mode-hook 'eldoc-mode))
+\end{minted}
+
+I also like using \texttt{flycheck-package} to ensure that my Elisp packages are
+correctly formatted.
+
+\begin{minted}[]{common-lisp}
+(use-package flycheck-package)
+
+(eval-after-load 'flycheck
+  '(flycheck-package-setup))
+\end{minted}
+\end{enumerate}
+
+
+
+
+
+
+
+
+\section{Publishing and task management with Org-mode}
+\label{sec:org301659a}
+
+\begin{minted}[]{common-lisp}
+(use-package org)
+\end{minted}
+
+\begin{enumerate}
+\item Display preferences
+\label{sec:org457e5d7}
+
+I like to see an outline of pretty bullets instead of a list of asterisks.
+
+\begin{minted}[]{common-lisp}
+(use-package org-bullets
+  :init
+  (add-hook 'org-mode-hook 'org-bullets-mode))
+\end{minted}
+
+I like seeing a little downward-pointing arrow instead of the usual ellipsis
+(\texttt{...}) that org displays when there's stuff under a header.
+
+\begin{minted}[]{common-lisp}
+(setq org-ellipsis "⤵")
+\end{minted}
+
+Use syntax highlighting in source blocks while editing.
+
+\begin{minted}[]{common-lisp}
+(setq org-src-fontify-natively t)
+\end{minted}
+
+Make TAB act as if it were issued in a buffer of the language's major mode.
+
+\begin{minted}[]{common-lisp}
+(setq org-src-tab-acts-natively t)
+\end{minted}
+
+When editing a code snippet, use the current window rather than popping open a
+new one (which shows the same information).
+
+\begin{minted}[]{common-lisp}
+(setq org-src-window-setup 'current-window)
+\end{minted}
+
+
+
+\item Task and org-capture management
+\label{sec:org9b60fd8}
+
+Record the time that a todo was archived.
+
+\begin{minted}[]{common-lisp}
+(setq org-log-done 'time)
+\end{minted}
+
+
+
+\item Exporting
+\label{sec:orgc83fa56}
+
+Allow export to markdown and beamer (for presentations).
+
+\begin{minted}[]{common-lisp}
+(require 'ox-md)
+(require 'ox-beamer)
+\end{minted}
+
+
+Translate regular ol' straight quotes to typographically-correct curly quotes
+when exporting.
+
+\begin{minted}[]{common-lisp}
+(setq org-export-with-smart-quotes t)
+\end{minted}
+
+\begin{enumerate}
+\item Exporting to HTML
+\label{sec:orge8721c6}
+
+Don't include a footer with my contact and publishing information at the bottom
+of every exported HTML document.
+
+\begin{minted}[]{common-lisp}
+(setq org-html-postamble nil)
+\end{minted}
+
+
+
+\item Exporting to PDF
+\label{sec:orgdf082f3}
+
+enable latex
+
+\begin{minted}[]{common-lisp}
+
+(require 'ox-latex)
+(unless (boundp 'org-latex-classes)
+  (setq org-latex-classes nil))
+(add-to-list 'org-latex-classes
+			 '("article"
+			   "\\documentclass{article}"
+			   ("\\section{%s}" . "\\section*{%s}")))
+
+\end{minted}
+
+
+
+I want to produce PDFs with syntax highlighting in the code. The best way to do
+that seems to be with the \texttt{minted} package, but that package shells out to
+\texttt{pygments} to do the actual work. \texttt{pdflatex} usually disallows shell commands;
+this enables that.
+
+\begin{minted}[]{common-lisp}
+(setq org-latex-pdf-process
+	  '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+		"xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+		"xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+\end{minted}
+
+Include the \texttt{minted} package in all of my \LaTeX{} exports.
+
+\begin{minted}[]{common-lisp}
+(add-to-list 'org-latex-packages-alist '("" "minted"))
+(setq org-latex-listings 'minted)
+\end{minted}
+\end{enumerate}
+
+
+
+\item \TeX{} configuration
+\label{sec:orgabeeded}
+
+I rarely write \LaTeX{} directly any more, but I often export through it with
+org-mode, so I'm keeping them together.
+
+Automatically parse the file after loading it.
+
+\begin{minted}[]{common-lisp}
+(setq TeX-parse-self t)
+\end{minted}
+
+Always use \texttt{pdflatex} when compiling \LaTeX{} documents. I don't really have any
+use for DVIs.
+
+\begin{minted}[]{common-lisp}
+(setq TeX-PDF-mode t)
+\end{minted}
+
+Open compiled PDFs in \texttt{okular} instead of in the editor.
+
+\begin{minted}[]{common-lisp}
+(add-hook 'org-mode-hook
+	  '(lambda ()
+		 (delete '("\\.pdf\\'" . default) org-file-apps)
+		 (add-to-list 'org-file-apps '("\\.pdf\\'" . "okular %s"))))
+\end{minted}
+
+
+
+
+\item Wrap paragraphs automatically
+\label{sec:org0d03931}
+
+\texttt{AutoFillMode} automatically wraps paragraphs, kinda like hitting \texttt{M-q}. I wrap
+a lot of paragraphs, so this automatically wraps 'em when I'm writing text,
+Markdown, or Org.
+
+\begin{minted}[]{common-lisp}
+(add-hook 'text-mode-hook 'auto-fill-mode)
+(add-hook 'gfm-mode-hook 'auto-fill-mode)
+(add-hook 'org-mode-hook 'auto-fill-mode)
+\end{minted}
+\end{enumerate}
+
+
+
+
+
+
+\section{Editing settings}
+\label{sec:orgcf74d3f}
+
+
+
+\begin{enumerate}
+\item Look for executables in \texttt{/usr/local/bin}
+\label{sec:orgc378ebe}
+
+\begin{minted}[]{common-lisp}
+(hrs/append-to-path "/usr/local/bin")
+\end{minted}
+
+\item Save my location within a file
+\label{sec:org85e3537}
+
+Using \texttt{save-place-mode} saves the location of point for every file I visit. If I
+close the file or close the editor, then later re-open it, point will be at the
+last place I visited.
+
+\begin{minted}[]{common-lisp}
+(save-place-mode t)
+\end{minted}
+
+
+
+
+
+
+\item Switch and rebalance windows when splitting
+\label{sec:org468f173}
+
+When splitting a window, I invariably want to switch to the new window. This
+makes that automatic.
+
+\begin{minted}[]{common-lisp}
+(defun hrs/split-window-below-and-switch ()
+  "Split the window horizontally, then switch to the new pane."
+  (interactive)
+  (split-window-below)
+  (balance-windows)
+  (other-window 1))
+
+(defun hrs/split-window-right-and-switch ()
+  "Split the window vertically, then switch to the new pane."
+  (interactive)
+  (split-window-right)
+  (balance-windows)
+  (other-window 1))
+
+(global-set-key (kbd "C-x 2") 'hrs/split-window-below-and-switch)
+(global-set-key (kbd "C-x 3") 'hrs/split-window-right-and-switch)
+\end{minted}
+\end{enumerate}
+\end{document}
