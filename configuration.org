@@ -715,3 +715,13 @@ Install and enable =smart-parens= globally
 (smartparens-global-mode t)
 
 #+END_SRC
+
+** Yasnippet
+For quickly inserting snippets for C, C++, Perl, Python, Ruby, SQL, Latex, HTML,
+Css...
+
+#+BEGIN_SRC emacs-lisp
+(use-package yasnippet)
+(use-package yasnippet-snippets)
+(yas-minor-mode t)
+#+END_SRC
