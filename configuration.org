@@ -268,11 +268,6 @@ Use =M-/= for completion.
 #+END_SRC
 
 
-** =flycheck=
-
- #+BEGIN_SRC emacs-lisp
-   (use-package flycheck)
- #+END_SRC
 
 
 
@@ -303,6 +298,24 @@ output.
   (setq compilation-scroll-output t)
 #+END_SRC
 
+** Java
+Emacs Java IDE using Eclipse JDT Language Server
+See [[https://github.com/emacs-lsp/lsp-java][Github lsp-java]]
+#+BEGIN_SRC emacs-lisp
+(use-package lsp-mode)
+(use-package hydra)
+(use-package company-lsp)
+(use-package lsp-ui)
+(use-package lsp-java :after (lsp)
+  :config (add-hook 'java-mode-hook 'lsp))
+
+(use-package dap-mode
+  :after lsp-mode
+  :config
+  (dap-mode t)
+  (dap-ui-mode t))
+(require 'dap-java)
+#+END_SRC
 
 ** CSS, Sass, and Less
 
@@ -725,3 +738,10 @@ Css...
 (use-package yasnippet-snippets)
 (yas-minor-mode t)
 #+END_SRC
+** Flycheck
+Show syntax errors
+
+ #+BEGIN_SRC emacs-lisp
+   (use-package flycheck)
+   (global-flycheck-mode t)
+ #+END_SRC

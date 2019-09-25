@@ -20,7 +20,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-	(use-package-ensure-system-package solarized-theme scss-mode rainbow-delimiters paredit org-bullets moody go-errcheck flycheck-package exec-path-from-shell diff-hl company-go coffee-mode auto-compile ag))))
+	(projectile lsp-java dap-mode lsp-ui company-lsp use-package-ensure-system-package solarized-theme scss-mode rainbow-delimiters paredit org-bullets moody go-errcheck flycheck-package exec-path-from-shell diff-hl company-go coffee-mode auto-compile ag))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
