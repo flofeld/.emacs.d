@@ -516,6 +516,14 @@ Config for company-go
 #+END_SRC
 
 
+** C (/C++)
+Company extensions for C
+#+BEGIN_SRC emacs-lisp
+(use-package company-rtags)
+(use-package company-c-headers)
+(use-package flycheck-rtags)
+(add-to-list 'company-backends 'company-rtags 'company-c-headers)
+#+END_SRC
 
 ** JavaScript and CoffeeScript
 
