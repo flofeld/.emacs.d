@@ -35,6 +35,16 @@ Always compile packages, and use the newest version available.
   (setq load-prefer-newer t)
 #+END_SRC
 
+Auto-update packages
+
+#+BEGIN_SRC emacs-lisp
+  (use-package auto-package-update
+  :config
+  (setq auto-package-update-delete-old-versions t)
+  (setq auto-package-update-hide-results t)
+  (auto-package-update-maybe))
+#+END_SRC
+
 * Use sensible-defaults.el
 
 Use [[https://github.com/hrs/sensible-defaults.el][sensible-defaults.el]] for some basic settings.
@@ -448,6 +458,7 @@ Install =go-mode= and related packages:
   (use-package go-mode)
   (use-package go-errcheck)
   (use-package company-go)
+  (add-to-list 'company-backends 'company-go)
 #+END_SRC
 
 Define my =$GOPATH= and tell Emacs where to find the Go binaries.
@@ -476,13 +487,12 @@ When I open a Go file,
 #+BEGIN_SRC emacs-lisp
   (add-hook 'go-mode-hook
             (lambda ()
-              (set (make-local-variable 'company-backends)
-                   '(company-go))
+              (set
               (company-mode)
               (if (not (string-match "go" compile-command))
                   (set (make-local-variable 'compile-command)
                        "go build -v && go test -v && go vet"))
-              (flycheck-mode)))
+              (flycheck-mode))))
 #+END_SRC
 
 Config for company-go
@@ -510,7 +520,6 @@ Config for company-go
 
 (add-hook 'go-mode-hook
       (lambda ()
-        (set (make-local-variable 'company-backends) '(company-go))
         (company-mode)))
 
 #+END_SRC
@@ -519,10 +528,22 @@ Config for company-go
 ** C (/C++)
 Company extensions for C
 #+BEGIN_SRC emacs-lisp
-(use-package company-rtags)
-(use-package company-c-headers)
-(use-package flycheck-rtags)
-(add-to-list 'company-backends 'company-rtags 'company-c-headers)
+;  (use-package company-rtags
+;	:config (add-to-list 'company-backends 'company-rtags))
+  (use-package company-c-headers
+	:config (add-to-list 'company-backends 'company-c-headers))
+;  (use-package flycheck-rtags)
+  (use-package irony)
+  (use-package flycheck-irony)
+  (eval-after-load 'flycheck
+  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  (use-package company-irony
+	:config (add-to-list 'company-backends 'company-irony))
+
+  (add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 #+END_SRC
 
 ** JavaScript and CoffeeScript
@@ -604,6 +625,13 @@ correctly formatted.
 
 * Publishing and task management with Org-mode
 
+Fix Agenda Shortcut
+
+#+BEGIN_SRC emacs-lisp
+  (require 'org-agenda)
+  (global-set-key "\C-ca" 'org-agenda)
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp
   (use-package org)
 #+END_SRC
@@ -665,6 +693,9 @@ Allow export to markdown and beamer (for presentations).
   (require 'ox-beamer)
 #+END_SRC
 
+(org-babel-do-load-languages
+  'org-babel-load-languages
+'((emacs-lisp . t)))
 
 Translate regular ol' straight quotes to typographically-correct curly quotes
 when exporting.
@@ -690,17 +721,19 @@ of every exported HTML document.
 enable latex
 
 #+BEGIN_SRC emacs-lisp
+;(load "auctex.el" nil t t)
+;(load "preview-latex.el" nil t t)
 
 (customize-set-value 'org-latex-with-hyperref nil)
 
 
-;(require 'ox-latex)
-;(unless (boundp 'org-latex-classes)
-;  (setq org-latex-classes nil))
-;(add-to-list 'org-latex-classes
-;             '("article"
-;               "\\documentclass{article}"
-;               ("\\section{%s}" . "\\section*{%s}")))
+(require 'ox-latex)
+(unless (boundp 'org-latex-classes)
+  (setq org-latex-classes nil))
+(add-to-list 'org-latex-classes
+             '("article"
+               "\\documentclass{article}"
+               ("\\section{%s}" . "\\section*{%s}")))
 
 #+END_SRC
 
@@ -716,6 +749,7 @@ this enables that.
         '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
           "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
           "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
 #+END_SRC
 
 Include the =minted= package in all of my LaTeX exports.
