@@ -1,3 +1,6 @@
+;; Start Emacs in Fullscreen
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 ;; Configure package.el to include MELPA.
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
