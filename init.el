@@ -18,9 +18,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-agenda-files (quote ("~/Documents/orgstuff/1.org")))
  '(package-selected-packages
    (quote
-	(projectile lsp-java dap-mode lsp-ui company-lsp use-package-ensure-system-package solarized-theme scss-mode rainbow-delimiters paredit org-bullets moody go-errcheck flycheck-package exec-path-from-shell diff-hl company-go coffee-mode auto-compile ag))))
+	(flycheck-objc-clang flycheck-irony company-irony-c-headers rtags yaml-mode projectile lsp-java dap-mode lsp-ui company-lsp use-package-ensure-system-package solarized-theme scss-mode rainbow-delimiters paredit org-bullets moody go-errcheck flycheck-package exec-path-from-shell diff-hl company-go coffee-mode auto-compile ag))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
