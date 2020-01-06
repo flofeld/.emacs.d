@@ -426,7 +426,13 @@ See [[https://github.com/emacs-lsp/lsp-java][Github lsp-java]]
 (use-package lsp-treemacs)
 #+END_SRC
 
-** CSS, Sass, and Less
+** HTML, CSS, Sass, and Less
+
+#+BEGIN_SRC emacs-lisp
+(use-package web-mode)
+(use-package emmet-mode)
+(use-package js2-mode)
+#+END_SRC
 
 Indent by 2 spaces.
 
