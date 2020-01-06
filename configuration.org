@@ -465,6 +465,17 @@ Install =go-mode= and related packages:
   (use-package go-errcheck)
   (use-package company-go)
   (add-to-list 'company-backends 'company-go)
+
+  (use-package flycheck
+    :ensure t
+    :init (global-flycheck-mode))
+
+  (use-package go-eldoc)
+  (add-hook 'go-mode-hook 'go-eldoc-setup)
+  (set-face-attribute 'eldoc-highlight-function-argument nil
+                    :underline t :foreground "green"
+                    :weight 'bold)
+
 #+END_SRC
 
 Define my =$GOPATH= and tell Emacs where to find the Go binaries.
@@ -507,6 +518,8 @@ Config for company-go
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 
+(use-package company-go)
+
 ;;For company-go
 (require 'company)
 (require 'company-go)
@@ -516,6 +529,7 @@ Config for company-go
   :diminish
   :custom
   (company-begin-commands '(self-insert-command))
+  (company-echo-delay 0)                          ; remove annoying blinking
   (company-idle-delay .1)
   (company-minimum-prefix-length 2)
   (company-show-numbers t)
@@ -628,6 +642,11 @@ correctly formatted.
 
 
 
+** SQL
+#+BEGIN_SRC emacs-lisp
+	(use-package company-edbi
+	  :config (add-to-list 'company-backends 'company-edbi))
+#+END_SRC
 
 * Publishing and task management with Org-mode
 
