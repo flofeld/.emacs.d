@@ -150,6 +150,9 @@
 
 (setq compilation-scroll-output t)
 
+(use-package company-tabnine :ensure t)
+(add-to-list 'company-backends #'company-tabnine)
+
 (use-package treemacs
   :ensure t
   :defer t
@@ -244,6 +247,10 @@
 
 (use-package lsp-treemacs)
 
+(use-package web-mode)
+(use-package emmet-mode)
+(use-package js2-mode)
+
 (use-package css-mode
   :config
   (setq css-indent-offset 2))
@@ -258,6 +265,16 @@
 (use-package go-errcheck)
 (use-package company-go)
 (add-to-list 'company-backends 'company-go)
+
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+
+(use-package go-eldoc)
+(add-hook 'go-mode-hook 'go-eldoc-setup)
+(set-face-attribute 'eldoc-highlight-function-argument nil
+                  :underline t :foreground "green"
+                  :weight 'bold)
 
 (setenv "GOPATH" "/home/flofeld/go")
 (hrs/append-to-path (concat (getenv "GOPATH") "/bin"))
@@ -277,6 +294,8 @@
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 
+(use-package company-go)
+
 ;;For company-go
 (require 'company)
 (require 'company-go)
@@ -286,8 +305,9 @@
   :diminish
   :custom
   (company-begin-commands '(self-insert-command))
+  (company-echo-delay 0)                          ; remove annoying blinking
   (company-idle-delay .1)
-  (company-minimum-prefix-length 2)
+  (company-minimum-prefix-length 1)
   (company-show-numbers t)
   (company-tooltip-align-annotations 't)
   (company-tooltip-limit 20)
@@ -348,6 +368,9 @@
 
 (eval-after-load 'flycheck
   '(flycheck-package-setup))
+
+(use-package company-edbi
+  :config (add-to-list 'company-backends 'company-edbi))
 
 (require 'org-agenda)
 (global-set-key "\C-ca" 'org-agenda)

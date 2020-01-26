@@ -321,6 +321,12 @@ output.
   (setq compilation-scroll-output t)
 #+END_SRC
 
+
+#+BEGIN_SRC emacs-lisp
+(use-package company-tabnine :ensure t)
+(add-to-list 'company-backends #'company-tabnine)
+#+END_SRC
+
 ** Treemacs
 Tree layout file explorer
 (For Java Development for now)
@@ -531,7 +537,7 @@ Config for company-go
   (company-begin-commands '(self-insert-command))
   (company-echo-delay 0)                          ; remove annoying blinking
   (company-idle-delay .1)
-  (company-minimum-prefix-length 2)
+  (company-minimum-prefix-length 1)
   (company-show-numbers t)
   (company-tooltip-align-annotations 't)
   (company-tooltip-limit 20)
